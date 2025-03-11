@@ -1,5 +1,6 @@
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QListWidget, QMessageBox, \
-    QGridLayout, QHBoxLayout, QSpinBox
+    QGridLayout, QHBoxLayout
 
 
 class MainWindow(QMainWindow):
@@ -10,10 +11,8 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
 
         main_layout = QVBoxLayout()
-        self.label = QLabel("Welkom bij Lake Side Mania Bestelinterface")
-        main_layout.addWidget(self.label)
-
         product_layout = QGridLayout()
+
         self.product_buttons = []
         self.load_products(product_layout)
         main_layout.addLayout(product_layout)
@@ -39,10 +38,14 @@ class MainWindow(QMainWindow):
 
     def load_products(self, layout):
         products = self.order_manager.fetch_products()
+        button_width = 150
+        button_height = 50
         for i, product in enumerate(products):
             button = QPushButton(f"{product.name}\n€{product.price:.2f}")
             button.clicked.connect(self.create_add_to_cart_handler(product))
+            button.setFixedSize(button_width, button_height)
             layout.addWidget(button, i // 3, i % 3)
+            layout.setAlignment(Qt.AlignTop)
             self.product_buttons.append(button)
 
     def create_add_to_cart_handler(self, product):
