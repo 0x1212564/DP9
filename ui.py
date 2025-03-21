@@ -15,7 +15,7 @@ class ProductDetailsDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        # Product details
+        """ Product details"""
         name_label = QLabel(f"<h2>{product.name}</h2>")
         layout.addWidget(name_label)
 
@@ -29,7 +29,7 @@ class ProductDetailsDialog(QDialog):
         category_label = QLabel(f"<b>Category:</b> {product.category}")
         layout.addWidget(category_label)
 
-        # Add to cart button
+        """Add to cart button"""
         add_button = QPushButton("Add to Cart")
         add_button.clicked.connect(self.accept)
         layout.addWidget(add_button)
@@ -44,30 +44,30 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Order Interface")
         self.setGeometry(100, 100, 900, 700)
 
-        # Main layout
+        """Main layout"""
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
 
-        # Left side - Products
+        """Left side - Products"""
         product_widget = QWidget()
         product_layout = QVBoxLayout(product_widget)
 
-        # Create tabs for different product views
+        """Create tabs for different product views"""
         self.tab_widget = QTabWidget()
 
-        # Tab 1: All Products
+        """Tab 1: All Products"""
         self.all_products_widget = QWidget()
         self.all_products_layout = QVBoxLayout(self.all_products_widget)
         self.create_product_grid(self.all_products_layout, self.order_manager.fetch_products())
         self.tab_widget.addTab(self.all_products_widget, "All Products")
 
-        # Tab 2: Popular Products
+        """Tab 2: Popular Products"""
         self.popular_widget = QWidget()
         self.popular_layout = QVBoxLayout(self.popular_widget)
         self.create_product_grid(self.popular_layout, self.order_manager.fetch_popular_products())
         self.tab_widget.addTab(self.popular_widget, "Popular Items")
 
-        # Tab 3: Combo Meals
+        """Tab 3: Combo Meals"""
         self.combo_widget = QWidget()
         self.combo_layout = QVBoxLayout(self.combo_widget)
         self.create_product_grid(self.combo_layout, self.order_manager.fetch_combo_meals())
@@ -75,7 +75,7 @@ class MainWindow(QMainWindow):
 
         product_layout.addWidget(self.tab_widget)
 
-        # Right side - Cart
+        """ Right side - Cart"""
         cart_widget = QWidget()
         cart_layout = QVBoxLayout(cart_widget)
 
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         self.cart_list.customContextMenuRequested.connect(self.show_context_menu)
         cart_layout.addWidget(self.cart_list)
 
-        # Remove item button
+        """Remove item button"""
         self.remove_button = QPushButton("Remove Selected Item")
         self.remove_button.clicked.connect(self.remove_selected_item)
         cart_layout.addWidget(self.remove_button)
@@ -102,7 +102,7 @@ class MainWindow(QMainWindow):
         self.checkout_button.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
         cart_layout.addWidget(self.checkout_button)
 
-        # Set the main layout with appropriate sizing
+        """Set the main layout with appropriate sizing"""
         main_layout.addWidget(product_widget, 3)  # 3/4 of width
         main_layout.addWidget(cart_widget, 1)  # 1/4 of width
 
@@ -114,24 +114,23 @@ class MainWindow(QMainWindow):
         grid_layout.setHorizontalSpacing(10)
 
         for i, product in enumerate(products):
-            # Create a product card widget
+            """Create a product card widget"""
             product_widget = QWidget()
-            product_widget.setStyleSheet("border: 1px solid #ccc; border-radius: 5px; padding: 10px;")
             product_layout = QVBoxLayout(product_widget)
 
-            # Product name and price
+            """Product name and price"""
             name_label = QLabel(f"<b>{product.name}</b>")
             product_layout.addWidget(name_label)
 
             price_label = QLabel(f"€{product.price:.2f}")
             product_layout.addWidget(price_label)
 
-            # View details button
+            """View details button"""
             details_button = QPushButton("View Details")
             details_button.clicked.connect(lambda checked, p=product: self.show_product_details(p))
             product_layout.addWidget(details_button)
 
-            # Add to cart button
+            """Add to cart button"""
             add_button = QPushButton("Add to Cart")
             add_button.clicked.connect(lambda checked, p=product: self.add_to_cart(p))
             product_layout.addWidget(add_button)
@@ -152,7 +151,7 @@ class MainWindow(QMainWindow):
     def add_to_cart(self, product):
         self.order_manager.add_to_order(product)
         item = QListWidgetItem(f"{product.name} - €{product.price:.2f}")
-        # Store the product object with the item
+        """Store the product object with the item"""
         item.setData(Qt.ItemDataRole.UserRole, product)
         self.cart_list.addItem(item)
         self.update_total()
@@ -168,7 +167,7 @@ class MainWindow(QMainWindow):
     def remove_selected_item(self):
         current_item = self.cart_list.currentItem()
         if current_item:
-            # Get the product object from the item's data
+            """Get the product object from the item's data"""
             product = current_item.data(Qt.ItemDataRole.UserRole)
             self.order_manager.remove_from_order(product)
             self.cart_list.takeItem(self.cart_list.row(current_item))
@@ -179,7 +178,33 @@ class MainWindow(QMainWindow):
         self.total_label.setText(f"Total: €{total:.2f}")
 
     def checkout(self):
+        """Popup window for payment method selection"""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Select Payment Method")
+        dialog.setGeometry(300, 300, 300, 150)
+
+        layout = QVBoxLayout()
+
+        label = QLabel("Choose a payment method:")
+        layout.addWidget(label)
+
+        button_layout = QHBoxLayout()
+
+        card_button = QPushButton("Card")
+        card_button.clicked.connect(lambda: self.process_payment(dialog, "Card"))
+        button_layout.addWidget(card_button)
+
+        cash_button = QPushButton("Cash")
+        cash_button.clicked.connect(lambda: self.process_payment(dialog, "Cash"))
+        button_layout.addWidget(cash_button)
+
+        layout.addLayout(button_layout)
+        dialog.setLayout(layout)
+        dialog.exec()
+
+    def process_payment(self, dialog, method):
         message = self.order_manager.checkout()
+        dialog.accept()  # Close the payment dialog
         QMessageBox.information(self, "Order", message)
         self.cart_list.clear()
         self.update_total()
