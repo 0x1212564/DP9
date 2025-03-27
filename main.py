@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QStyleFactory
 from ui import MainWindow
 from backend import OrderManager
 import sys
@@ -12,7 +12,8 @@ def main():
     app = QApplication(sys.argv)
 
     # Set application style
-    app.setStyle("Fusion")
+    app.setStyle("WindowsVista")
+
 
     # Create and show the main window
     window = MainWindow(order_manager)

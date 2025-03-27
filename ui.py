@@ -1,7 +1,8 @@
-from PyQt6.QtCore import Qt
+# Update imports to include QToolButton and QSize
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import (QMainWindow, QLabel, QVBoxLayout, QWidget, QPushButton, QListWidget, QMessageBox,
-                             QGridLayout, QHBoxLayout, QTabWidget, QDialog, QListWidgetItem, QMenu)
-from PyQt6.QtGui import QCursor, QAction
+                            QGridLayout, QHBoxLayout, QTabWidget, QDialog, QListWidgetItem, QMenu, QScrollArea, QToolButton)
+from PyQt6.QtGui import QCursor, QAction, QIcon, QPixmap
 
 
 class ProductDetailsDialog(QDialog):
@@ -42,40 +43,83 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.order_manager = order_manager
         self.setWindowTitle("Order Interface")
-        self.setGeometry(100, 100, 900, 700)
+        self.setGeometry(100, 100, 1200, 800)
+
+        # Replace emoji icons with image filenames
+        self.category_images = {
+            "popular": "top10.png",
+            "burgers": "burger.png",
+            "tacos": "taco.png",
+            "salads": "salade.png",
+            "fries": "fs.png",
+            "drinks": "dranken.png",
+            "desserts": "dessert.png"
+        }
 
         """Main layout"""
         main_widget = QWidget()
         main_layout = QHBoxLayout(main_widget)
 
-        """Left side - Products"""
-        product_widget = QWidget()
-        product_layout = QVBoxLayout(product_widget)
+        """Left side - Categories and Products"""
+        left_widget = QWidget()
+        left_layout = QHBoxLayout(left_widget)  # Changed to HBoxLayout
 
-        """Create tabs for different product views"""
-        self.tab_widget = QTabWidget()
+        """Categories section - Now on the left"""
+        categories_widget = QWidget()
+        categories_layout = QVBoxLayout(categories_widget)  # Changed to VBoxLayout
+        categories_layout.setSpacing(10)
 
-        """Tab 1: All Products"""
-        self.all_products_widget = QWidget()
-        self.all_products_layout = QVBoxLayout(self.all_products_widget)
-        self.create_product_grid(self.all_products_layout, self.order_manager.fetch_products())
-        self.tab_widget.addTab(self.all_products_widget, "All Products")
+        """Create category buttons with images instead of emojis"""
+        for category, image_file in self.category_images.items():
+            # Use QToolButton which supports text under icon
+            category_button = QToolButton()
+            category_button.setMinimumSize(100, 100)
+            
+            # Set icon from image file
+            icon = QIcon(f"assets/{image_file}")
+            category_button.setIcon(icon)
+            category_button.setIconSize(QSize(60, 60))
+            
+            # Set text below icon
+            category_button.setText(category.capitalize())
+            category_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
+            
+            category_button.setStyleSheet("""
+                QToolButton {
+                    background-color: transparent;
+                    border: none;
+                    border-radius: 10px;
+                    padding: 10px;
+                    font-size: 14px;
+                }
+                QToolButton:hover {
+                    background-color: rgba(240, 240, 240, 0.5);
+                }
+                QToolButton:pressed {
+                    background-color: rgba(224, 224, 224, 0.7);
+                }
+            """)
+            category_button.clicked.connect(lambda checked, cat=category: self.show_category_products(cat))
+            categories_layout.addWidget(category_button)
 
-        """Tab 2: Popular Products"""
-        self.popular_widget = QWidget()
-        self.popular_layout = QVBoxLayout(self.popular_widget)
-        self.create_product_grid(self.popular_layout, self.order_manager.fetch_popular_products())
-        self.tab_widget.addTab(self.popular_widget, "Popular Items")
+        """Products section - Now on the right of categories"""
+        products_container = QWidget()
+        products_container_layout = QVBoxLayout(products_container)
+        
+        self.products_widget = QWidget()
+        self.products_layout = QVBoxLayout(self.products_widget)
 
-        """Tab 3: Combo Meals"""
-        self.combo_widget = QWidget()
-        self.combo_layout = QVBoxLayout(self.combo_widget)
-        self.create_product_grid(self.combo_layout, self.order_manager.fetch_combo_meals())
-        self.tab_widget.addTab(self.combo_widget, "Combo Meals")
+        scroll = QScrollArea()
+        scroll.setWidget(self.products_widget)
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        products_container_layout.addWidget(scroll)
 
-        product_layout.addWidget(self.tab_widget)
+        """Add both sections to the left layout"""
+        left_layout.addWidget(categories_widget, 1)  # Categories take 1 part
+        left_layout.addWidget(products_container, 4)  # Products take 4 parts
 
-        """ Right side - Cart"""
+        """Right side - Cart"""
         cart_widget = QWidget()
         cart_layout = QVBoxLayout(cart_widget)
 
@@ -103,10 +147,31 @@ class MainWindow(QMainWindow):
         cart_layout.addWidget(self.checkout_button)
 
         """Set the main layout with appropriate sizing"""
-        main_layout.addWidget(product_widget, 3)  # 3/4 of width
-        main_layout.addWidget(cart_widget, 1)  # 1/4 of width
+        main_layout.addWidget(left_widget, 3)
+        main_layout.addWidget(cart_widget, 1)
 
         self.setCentralWidget(main_widget)
+        
+        """Show popular items by default"""
+        self.show_category_products("popular")
+
+    def show_category_products(self, category):
+        """Clear existing products"""
+        for i in reversed(range(self.products_layout.count())):
+            item = self.products_layout.itemAt(i)
+            if item.widget():
+                item.widget().setParent(None)
+            else:
+                self.products_layout.removeItem(item)
+
+        """Get products for the selected category"""
+        if category == "popular":
+            products = self.order_manager.fetch_popular_products()
+        else:
+            products = self.order_manager.fetch_products_by_category(category)
+
+        """Create product grid"""
+        self.create_product_grid(self.products_layout, products)
 
     def create_product_grid(self, parent_layout, products):
         grid_layout = QGridLayout()

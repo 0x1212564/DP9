@@ -7,6 +7,7 @@ class Product:
         self.category = category
         self.popularity = popularity
 
+
     def __str__(self):
         return f"{self.name} (€{self.price:.2f})"
 

@@ -4,24 +4,32 @@ from models import Product, Order
 class OrderManager:
     def __init__(self):
         self.products = [
-            Product(1, "Burger", 5.99, "A delicious beef burger with lettuce, tomato, and special sauce", "a la carte",
-                    10),
-            Product(2, "Pizza", 7.99, "Cheesy pepperoni pizza with a crispy crust", "a la carte", 15),
-            Product(3, "Pasta", 6.99, "Creamy Alfredo pasta with garlic bread", "a la carte", 8),
-            Product(4, "French Fries", 3.99, "Crispy golden fries with sea salt", "a la carte", 20),
-            Product(5, "Salad", 4.99, "Fresh garden salad with vinaigrette", "a la carte", 5),
-            Product(6, "Soda", 1.99, "Refreshing cola or lemon-lime soda", "a la carte", 18),
-            Product(7, "Combo Meal 1", 10.99, "Burger, fries, and soda. Save €0.98 compared to buying separately!",
-                    "combo", 12),
-            Product(8, "Combo Meal 2", 12.99, "Pizza, salad, and drink. Save €1.98 compared to buying separately!",
-                    "combo", 9),
-            Product(9, "Family Combo", 19.99, "2 burgers, 2 fries, and 2 sodas. Great value for sharing!", "combo", 7)
+            Product(1, "Classic Burger", 5.99, "Juicy beef patty with lettuce, tomato, and house sauce", "burgers", 10),
+            Product(2, "Cheese Burger", 6.99, "Classic burger topped with melted cheddar cheese", "burgers", 12),
+            Product(3, "Street Taco", 3.99, "Authentic corn tortilla with seasoned beef and cilantro", "tacos", 15),
+            Product(4, "Fish Taco", 4.99, "Crispy fish taco with cabbage slaw and lime crema", "tacos", 8),
+            Product(5, "Caesar Salad", 4.99, "Crisp romaine, parmesan, croutons with caesar dressing", "salads", 7),
+            Product(6, "Garden Salad", 4.49, "Mixed greens with fresh vegetables and vinaigrette", "salads", 5),
+            Product(7, "Classic Fries", 2.99, "Golden crispy fries with sea salt", "fries", 20),
+            Product(8, "Loaded Fries", 4.99, "Fries topped with cheese, bacon, and green onions", "fries", 15),
+            Product(9, "Fountain Drink", 1.99, "Choice of soda or iced tea", "drinks", 18),
+            Product(10, "Milkshake", 3.99, "Creamy vanilla or chocolate shake with whipped cream", "drinks", 12),
+            Product(11, "Chocolate Cake", 4.99, "Rich chocolate layer cake with fudge frosting", "desserts", 9),
+            Product(12, "Ice Cream Sundae", 3.99, "Vanilla ice cream with choice of toppings", "desserts", 8)
         ]
         self.current_order = Order()
 
     def fetch_products(self):
         """Return all products"""
         return self.products
+
+    def fetch_products_by_category(self, category):
+        """Return products filtered by category"""
+        return [p for p in self.products if p.category == category]
+
+    def get_categories(self):
+        """Return unique categories"""
+        return sorted(set(p.category for p in self.products))
 
     def fetch_popular_products(self):
         """Return the most popular products based on popularity score"""
